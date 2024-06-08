@@ -2,9 +2,17 @@ document.getElementById('athleteForm').addEventListener('submit', async function
     event.preventDefault();
 
     const formData = new FormData(event.target);
+    const eesnimi = formData.get('eesnimi');
+    const perenimi = formData.get('perenimi');
+
+    if (!validateName(eesnimi) || !validateName(perenimi)) {
+        alert('Nimed sisaldavad keelatud tähemärke!');
+        return; // Stop form submission
+    }
+
     const data = {
-        eesnimi: formData.get('eesnimi'),
-        perenimi: formData.get('perenimi'),
+        eesnimi: eesnimi,
+        perenimi: perenimi,
         sugu: formData.get('sugu'),
         ala: formData.get('ala'),
         vanusegrupp: formData.get('vanusegrupp'),
@@ -40,3 +48,8 @@ document.getElementById('athleteForm').addEventListener('submit', async function
         alert('An error occurred, please try again.');
     }
 });
+
+function validateName(name) {
+    const forbiddenChars = /[:;?\=\(\)\[\]{}<>'"/\\!@#$%^&*_+`|~0-9]/;
+    return name && !forbiddenChars.test(name);
+}

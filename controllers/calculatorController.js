@@ -1,57 +1,31 @@
 const Calculator = require('../models/calculator');
-const pool = require('../src/databasepool').pool;
+const athleteController = require('./athleteController');
+const poolPromise = require('../src/databasepoolPromise').pool;
 
 // POST tulemuste tabelisse
 exports.postPoints = async (req, res) => {
-    const { athlete_id, event, best_result, age_group } = req.body;
-    const season = new Date().getFullYear(); // automaatne hooaja määramine
+    const { eesnimi, perenimi, sugu, ala, vanusegrupp, meetrid } = req.body;
+    const hooaeg = new Date().getFullYear(); // automaatne hooaja määramine
 
-    if (!athlete_id || !event || best_result === undefined || !age_group) {
-        return res.status(400).send('Täida kõik väljad');
+    if (!eesnimi || !perenimi || !sugu || !ala || !vanusegrupp || !meetrid) {
+        return res.status(400).json({ error: 'All fields are required!' });
     }
 
     try {
-        // Sportlase soo päring andmebaasist
-        const selectSql = 'SELECT sugu FROM sportlane WHERE id = ?';
+        // Get or create athlete and retrieve athlete ID
+        const athleteId = await athleteController.getOrCreateAthlete(eesnimi, perenimi, sugu);
 
-        pool.getConnection((err, conn) => {
-            if (err) {
-                console.error('Database connection error:', err);
-                return res.status(500).send('Internal server error');
-            } else {
-                conn.execute(selectSql, [athlete_id], (err, result) => {
-                    if (err) {
-                        conn.release();
-                        console.error('Database query error:', err);
-                        return res.status(500).send('Internal server error');
-                    } else {
-                        if (result.length === 0) {
-                            conn.release();
-                            return res.status(404).send('Athlete not found');
-                        }
+        // Calculate points
+        const calculator = new Calculator(sugu, ala, parseFloat(meetrid));
+        const punktid = calculator.calculatePoints();
 
-                        const gender = result[0].sugu;
+        // Insert the result into the database
+        const insertResultSql = 'INSERT INTO tulemus (sportlane_id, ala, vanusegrupp, meetrid, punktid, hooaeg) VALUES (?, ?, ?, ?, ?, ?)';
+        await poolPromise.query(insertResultSql, [athleteId, ala, vanusegrupp, meetrid, punktid, hooaeg]);
 
-                        const calculator = new Calculator(gender, event, best_result);
-
-                        const points = calculator.calculatePoints();
-
-                        // Insert tulemuste tabelisse
-                        const insertSql = 'INSERT INTO tulemus (sportlane_id, ala, vanusegrupp, meetrid, punktid, hooaeg) VALUES (?, ?, ?, ?, ?, ?)';
-                        conn.execute(insertSql, [athlete_id, event, age_group, best_result, points, season], (err) => {
-                            conn.release();
-                            if (err) {
-                                console.error('Database insert error:', err);
-                                return res.status(500).send('Internal server error');
-                            }
-                            res.status(200).end();
-                        });
-                    }
-                });
-            }
-        });
-    } catch (error) {
-        console.error('Error calculating points:', error);
-        res.status(500).send('Internal server error');
+        res.status(200).json({ message: 'Data saved successfully!' });
+    } catch (err) {
+        console.error('Error processing request:', err);
+        res.status(500).json({ error: 'Failed to process the request!' });
     }
 };

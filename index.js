@@ -7,7 +7,7 @@ const poolPromise = require('./src/databasepoolPromise').pool;
 const calculatorController = require('./controllers/calculatorController');
 const resultController = require('./controllers/resultController');
 const athleteController = require('./controllers/athleteController');
-const routes = require('./routes/hspr'); // Import HSPR routes
+
 
 // Configuration
 app.set('view engine', 'ejs');
@@ -18,9 +18,6 @@ app.use(bodyparser.json());
 // Serve static files
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// Routes for HSPR
-app.use('/api/hspr', routes);
-
 app.get('/addresults', (req, res) => {
     res.render('addresults');
 });
@@ -28,9 +25,7 @@ app.get('/addresults', (req, res) => {
 // Use calculatorController to handle form submission
 app.post('/submit-result', calculatorController.postPoints);
 
-app.get('/leaderboard', (req, res) => {
-    res.render('leaderboard');
-});
+app.get('/leaderboard', resultController.getLeaderboard);
 
 // Endpoint definitions for result management
 app.get('/recent-results', resultController.getRecentResults);

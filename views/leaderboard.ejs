@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../public/style/styles.css">
+    <title>Leaderboard</title>
+</head>
+<header>
+    <a href="/">Tulemuste sisestamine</a>
+    <a href="/allresults">Kõik tulemused</a>
+    <a href="/leaderboard">Edetabelid</a>
+</header>
+<body>
+
+<h1>Mitmevõistluse edetabel</h1>
+<form method="GET">
+    //TODO: (seasonsData is not defined) -
+    <% seasonsData.forEach(function(season) { %>
+        <input type="radio" id="<%= season %>" name="season" value="<%= season %>">
+        <label for="<%= season %>"><%= season %></label><br>
+    <% }); %>
+    <button type="submit">Otsi</button>
+</form>
+
+<div id="resultsContainer">
+    <% if (results && results.length > 0) { %>
+        <h2>Tulemused</h2>
+        <table>
+            <thead>
+            <tr>
+                <!-- Adjust headers based on your result structure -->
+                <th>Column 1</th>
+                <th>Column 2</th>
+                <!-- Add more columns as needed -->
+            </tr>
+            </thead>
+            <tbody>
+            <% results.forEach(function(result) { %>
+                <tr>
+                    <!-- Populate table cells with result data -->
+                    <td><%= result.column1 %></td>
+                    <td><%= result.column2 %></td>
+                    <!-- Add more columns as needed -->
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    <% } %>
+</div>
+
+</body>
+</html>

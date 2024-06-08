@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change or Delete results</title>
+    <link rel="stylesheet" href="/public/style/styles.css">
+</head>
+<body>
+    <header>
+        <a href="/addresults">Tulemuste sisestamine</a>
+        <a href="/allresults">Kõik tulemused</a>
+        <a href="/leaderboard">Edetabelid</a>
+    </header>
+
+    <h1>Sisestatud tulemused</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Eesnimi</th>
+                <th>Perenimi</th>
+                <th>Ala</th>
+                <th>Vanusegrupp</th>
+                <th>Meetrid</th>
+                <th>Punktid</th>
+                <th>Hooaeg</th>
+                <th>Modify</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% recentResults.forEach(result => { %>
+                <tr>
+                    <td><%= result.eesnimi %></td>
+                    <td><%= result.perenimi %></td>
+                    <td><%= result.ala %></td>
+                    <td><%= result.vanusegrupp %></td>
+                    <td><%= result.meetrid %></td>
+                    <td><%= result.punktid %></td>
+                    <td><%= result.hooaeg %></td>
+                    <td>
+                        <button onclick="editResult(
+                            <%= result.id %>,
+                            <%= result.meetrid %>,
+                            '<%= result.sugu %>',
+                            '<%= result.ala %>'
+                        )">Edit</button>
+                    </td>
+                    <td>
+                        <button onclick="deleteResult(<%= result.id %>)">Delete</button>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <!-- Edit Result Modal -->
+    <div id="editModal" style="display:none;">
+        <form id="editForm">
+            <input type="hidden" name="id" id="editId">
+            <input type="hidden" name="sugu" id="editSugu">
+            <input type="hidden" name="ala" id="editAla">
+            <label for="editMeetrid">Meetrid:</label>
+            <input type="number" step="0.01" name="meetrid" id="editMeetrid">
+            <button type="submit">Save Changes</button>
+            <button type="button" onclick="closeEditModal()">Cancel</button>
+        </form>
+    </div>
+
+    <!-- Ensure script is placed after elements are defined -->
+    <script>
+        function editResult(id, meetrid, sugu, ala) {
+            console.log('Opening form with:', { id, meetrid, sugu, ala });
+            document.getElementById('editId').value = id;
+            document.getElementById('editMeetrid').value = meetrid;
+            document.getElementById('editSugu').value = sugu;
+            document.getElementById('editAla').value = ala;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('editId').value;
+            const meetrid = document.getElementById('editMeetrid').value;
+            const sugu = document.getElementById('editSugu').value;
+            const ala = document.getElementById('editAla').value;
+
+            if (!meetrid || !sugu || !ala) {
+                alert('All fields are required');
+                return;
+            }
+
+            console.log('Submitting form with:', { id, meetrid, sugu, ala });
+
+            fetch(`/update-result/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ meetrid, sugu, ala })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert('Result updated successfully!');
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function deleteResult(id) {
+            if (confirm('Are you sure you want to delete this result?')) {
+                fetch(`/delete-result/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(`Error: ${data.error}`);
+                    } else {
+                        alert('Result deleted successfully!');
+                        window.location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</body>
+</html>

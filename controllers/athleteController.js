@@ -42,15 +42,6 @@ exports.postAthlete = async (req, res) => {
     }
 };
 
-function checkName(competitorsName) {
-    const forbiddenChars = /[:;?\=\(\)\[\]{}<>'"/\\!@#$%^&*_+`|~0-9]/;
-    if (competitorsName == null || competitorsName === "") {
-        throw new Error("Lahter on tühi!");
-    } else if (competitorsName.match(forbiddenChars)) {
-        throw new Error("Lahtris on keelatud tähemärgid!");
-    }
-}
-
 exports.getFirstNames = async (req, res) => {
     const { prefix } = req.body;
     const selectSql = 'SELECT eesnimi FROM sportlane WHERE eesnimi LIKE ?';

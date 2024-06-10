@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 const dataBase = 'if23_ander_aa_hspr2';
-const dbConfig = require('../../../vp23config'); // Ensure the path is correct
+const dbConfig = require('../../../vp23config'); // Path only works in specific greeny 
 
 const poolPromise = mysql.createPool({
     host: dbConfig.configData.host,
